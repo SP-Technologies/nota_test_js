@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Reordering</title>
+    <!-- Include jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        button {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="reorder-btn">1</button>
+    <button class="reorder-btn">2</button>
+    <button class="reorder-btn">3</button>
+
+    <script>
+        $(document).ready(function() {
+            // Click event for all buttons with the class 'reorder-btn'
+            $('.reorder-btn').on('click', function() {
+                // Find the index of the clicked button among all buttons
+                var currentIndex = $(this).index();
+
+                // Determine the index of the button to swap with
+                var newIndex = currentIndex - 1;
+
+                // If the button has no upper neighbor, swap with the below neighbor
+                if (newIndex < 0) {
+                    newIndex = currentIndex + 1;
+                }
+
+                // Swap the buttons using jQuery's insertBefore
+                $('.reorder-btn').eq(currentIndex).insertBefore($('.reorder-btn').eq(newIndex));
+            });
+        });
+    </script>
+
+</body>
+</html>
