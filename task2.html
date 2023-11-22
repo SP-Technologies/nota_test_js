@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Table Example</title>
+    <!-- Include jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .editable {
+            border: 1px solid #ccc;
+            padding: 5px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="addButton">Add New Entry</button>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Date Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Mocked data
+        var mockData = [
+            { id: 1, name: 'John Doe', datetime: '2023-11-22 12:00:00' },
+            { id: 2, name: 'Jane Doe', datetime: '2023-11-23 14:30:00' }
+        ];
+
+        // Function to render table rows
+        function renderTable(data) {
+            var tableBody = $('#dataTable tbody');
+            tableBody.empty();
+
+            $.each(data, function(index, entry) {
+                var row = '<tr data-id="' + entry.id + '">' +
+                            '<td>' + entry.id + '</td>' +
+                            '<td><div class="editable" contenteditable="false">' + entry.name + '</div></td>' +
+                            '<td>' + entry.datetime + '</td>' +
+                            '<td>' +
+                                '<button class="editButton">Edit</button>' +
+                                '<button class="deleteButton">Delete</button>' +
+                                '</td>' +
+                            '</tr>';
+                tableBody.append(row);
+            });
+        }
+
+        // Initial rendering of the table
+        renderTable(mockData);
+
+        // Function to handle add button click
+        $('#addButton').on('click', function() {
+            var newRow = '<tr>' +
+                            '<td></td>' +
+                            '<td><input type="text" class="newName" placeholder="Enter name"></td>' +
+                            '<td></td>' +
+                            '<td>' +
+                                '<button class="sendButton">Send</button>' +
+                            '</td>' +
+                          '</tr>';
+
+            $('#dataTable tbody').append(newRow);
+        });
+
+        // Function to handle send button click
+        $('#dataTable').on('click', '.sendButton', function() {
+            var newRow = $(this).closest('tr');
+            var newName = newRow.find('.newName').val();
+
+            // Mocked request to backend
+            $.ajax({
+                url: '/api/addEntry', // Replace with your actual backend endpoint
+                method: 'POST',
+                data: { name: newName },
+                success: function(response) {
+                    newRow.attr('data-id', response.id);
+                    newRow.find('td:eq(0)').text(response.id);
+                    newRow.find('td:eq(1)').html('<div class="editable" contenteditable="false">' + response.name + '</div>');
+                    newRow.find('td:eq(2)').text(response.datetime);
+                    newRow.find('td:eq(3)').html('<button class="editButton">Edit</button>' +
+                                                 '<button class="deleteButton">Delete</button>' +
+                                                '</td>');
+                },
+                error: function(error) {
+                    alert('Error: ' + error.responseText);
+                }
+            });
+        });
+
+        // Function to handle delete button click
+        $('#dataTable').on('click', '.deleteButton', function() {
+            var rowToDelete = $(this).closest('tr');
+            var idToDelete = rowToDelete.data('id');
+
+            // Mocked request to backend
+            $.ajax({
+                url: '/api/deleteEntry/' + idToDelete, // Replace with your actual backend endpoint
+                method: 'DELETE',
+                success: function() {
+                    rowToDelete.remove();
+                },
+                error: function(error) {
+                    alert('Error: ' + error.responseText);
+                }
+            });
+        });
+
+        // Function to handle edit button click
+        $('#dataTable').on('click', '.editButton', function() {
+            var rowToEdit = $(this).closest('tr');
+            var editableField = rowToEdit.find('.editable');
+
+            if (editableField.attr('contenteditable') === 'false') {
+                // Enable editing
+                editableField.attr('contenteditable', 'true');
+                editableField.addClass('editing');
+
+                // Change button to Save
+                $(this).text('Save');
+            } else {
+                // Disable editing
+                editableField.attr('contenteditable', 'false');
+                editableField.removeClass('editing');
+
+                // Change button back to Edit
+                $(this).text('Edit');
+
+                // Mocked request to backend
+                var editedName = editableField.text();
+                var idToEdit = rowToEdit.data('id');
+                $.ajax({
+                    url: '/api/editEntry/' + idToEdit, // Replace with your actual backend endpoint
+                    method: 'PUT',
+                    data: { name: editedName },
+                    success: function(response) {
+                        // Update the row with the edited data
+                        rowToEdit.find('.editable').html(response.name);
+                    },
+                    error: function(error) {
+                        alert('Error: ' + error.responseText);
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
